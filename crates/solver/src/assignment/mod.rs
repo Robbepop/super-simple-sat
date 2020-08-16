@@ -209,9 +209,10 @@ impl Assignment {
     /// If the initialization has already taken place.
     pub fn initialize_watchers(&mut self, clause: ClauseRef) {
         let clause_id = clause.id();
-        for literal in clause.into_iter().take(2) {
-            self.watchers.register_for_lit(!literal, clause_id);
-        }
+        let fst = clause.first();
+        let snd = clause.second();
+        self.watchers.register_for_lit(!fst, snd, clause_id);
+        self.watchers.register_for_lit(!snd, fst, clause_id);
     }
 
     /// Returns a view into the assignment.

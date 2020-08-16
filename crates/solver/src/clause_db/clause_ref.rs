@@ -38,6 +38,26 @@ impl<'a> ClauseRef<'a> {
     pub fn id(&self) -> ClauseId {
         self.id
     }
+
+    /// Returns the first literal of the referenced clause.
+    ///
+    /// # Note
+    ///
+    /// This always yields a literal since this always references clauses with
+    /// at least two literals.
+    pub fn first(&self) -> Literal {
+        self.literals[0]
+    }
+
+    /// Returns the second literal of the referenced clause.
+    ///
+    /// # Note
+    ///
+    /// This always yields a literal since this always references clauses with
+    /// at least two literals.
+    pub fn second(&self) -> Literal {
+        self.literals[1]
+    }
 }
 
 impl<'a> IntoIterator for ClauseRef<'a> {
@@ -61,7 +81,10 @@ pub enum PropagationResult {
     /// The clause is already satisfied under the current assignment.
     AlreadySatisfied,
     /// The clause chose a new watched literal.
-    NewWatchedLiteral(Literal),
+    NewWatchedLiteral {
+        new_watched: Literal,
+        new_blocker: Literal,
+    },
     /// The clause is now unit under the current assignment.
     UnitUnderAssignment(Literal),
 }
@@ -103,7 +126,10 @@ impl<'a> ClauseRefMut<'a> {
                 .unwrap_or_else(|| true)
             {
                 self.literals.swap(1, i);
-                return PropagationResult::NewWatchedLiteral(!self.literals[1])
+                return PropagationResult::NewWatchedLiteral {
+                    new_watched: !self.literals[1],
+                    new_blocker: self.literals[0],
+                }
             }
         }
         // Clause is unit under current assignment:
