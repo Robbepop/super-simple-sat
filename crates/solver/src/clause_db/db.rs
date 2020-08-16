@@ -4,24 +4,30 @@ use super::{
     ClauseRefMut,
 };
 use crate::Literal;
+use bounded::Index;
 use core::{
     mem,
+    num::NonZeroU32,
     ops::Range,
     slice,
 };
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ClauseId(usize);
+#[repr(transparent)]
+pub struct ClauseId(NonZeroU32);
 
-impl ClauseId {
+impl Index for ClauseId {
     /// Creates a new clause identifier from the given index.
     fn from_index(id: usize) -> Self {
-        Self(id)
+        Self(
+            NonZeroU32::new((id as u32).wrapping_add(1))
+                .expect("encountered unexpected out of bounds clause ID"),
+        )
     }
 
     /// Returns the index of the clause identifier.
     fn into_index(self) -> usize {
-        self.0
+        self.0.get().wrapping_sub(1) as usize
     }
 }
 
